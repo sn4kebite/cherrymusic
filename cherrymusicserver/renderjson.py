@@ -72,5 +72,6 @@ class JSON(object):
                 retlist.append({'type':'file',
                                 'urlpath':urlpath,
                                 'path':entry.path,
+                                'track':entry.track,
                                 'label':simplename})
         return json.dumps(retlist)

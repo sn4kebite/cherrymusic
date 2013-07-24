@@ -314,11 +314,14 @@ ext2jPlayerFormat = function(ext){
 TRANSCODING
 **********/
 
-function getTranscodePath(filepath, format){
+function getTranscodePath(filepath, format, track){
     "use strict";
     var match = filepath.match(/serve(.*)$/);
     if(match){
-        return "/trans"+match[1]+"/get."+format;
+        var s = "/trans"+match[1]+"/get."+format;
+        if(track)
+            s += '?track=' + track;
+        return s;
     }
 }
 
@@ -754,7 +757,7 @@ function endsWith(str, suffix) {
 }
 function getFileTypeByExt(filepath){
     "use strict";
-    var extmatch = filepath.match(/.*?\.(\w+)$/);
+    var extmatch = filepath.match(/.*?\.(\w+)?$/);
     if(extmatch){
         return extmatch[1].toLowerCase();
     }

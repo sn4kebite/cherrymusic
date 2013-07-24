@@ -592,15 +592,16 @@ PlaylistManager.prototype = {
         this.playingPlaylist = plid;
         this.refreshTabs();
     },
-    transcodeURL: function(track){
+    transcodeURL: function(_track){
         "use strict";
         var self = this;
-        var path = track.url;
-        var title = track.title;
+        var path = _track.url;
+        var title = _track.title;
         var ext = getFileTypeByExt(path);
         var track = {
             title: title,
             wasPlayed : 0,
+            track: _track.track
         }
         var formats = [];
         if(availablejPlayerFormats.indexOf(ext) !== -1){
@@ -622,7 +623,7 @@ PlaylistManager.prototype = {
                 for(var i=0; i<availablejPlayerFormats.length; i++){
                     if(availableEncoders.indexOf(availablejPlayerFormats[i]) !== -1){
                         formats.push(availablejPlayerFormats[i]);
-                        track[ext2jPlayerFormat(availablejPlayerFormats[i])] = getTranscodePath(path,availablejPlayerFormats[i]);
+                        track[ext2jPlayerFormat(availablejPlayerFormats[i])] = getTranscodePath(path,availablejPlayerFormats[i],_track.track);
                         window.console.log('added live transcoding '+ext+' --> '+availablejPlayerFormats[i]);
                     }
                 }
@@ -634,13 +635,14 @@ PlaylistManager.prototype = {
         }
         return track;
     },
-    addSong : function(path,title, plid){
+    addSong : function(path,title, plid, track){
         "use strict";
         var self = this;
         var track = {
             title: title,
             url: path,
             wasPlayed : 0,
+            track: track
         }
         var playlist;
         if (plid) {
@@ -667,6 +669,8 @@ PlaylistManager.prototype = {
             }
             self.getEditingPlaylist().jplayerplaylist._refresh(true);
         }
+        if(track.track)
+            path += '?track=' + track.track;
         api({action:'getsonginfo',
             value: path}, success, errorFunc('error getting song metainfo'), true);
     },

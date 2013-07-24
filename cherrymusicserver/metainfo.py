@@ -29,7 +29,7 @@
 #
 
 from cherrymusicserver import log
-import sys
+import sys, os
 
 #check for meta info libraries
 if sys.version_info >= (3,):
@@ -80,7 +80,36 @@ class MockTag():
         self.title = '-'
         self.track = '-'
        
-def getSongInfo(filepath):
+def getSongInfo(filepath, _track = None):
+    ext = os.path.splitext(filepath)[1]
+    if ext == '.cue' and _track:
+        from cherrymusicserver.cuesheet import Cuesheet
+        cue = Cuesheet(filepath)
+        info = cue.info[0]
+        artist = info.performer or '-'
+        album = info.title or '-'
+        title = '-'
+        _track = int(_track)
+        track = cue.tracks[_track-1]
+        artist = track.performer or artist
+        title = track.title or title
+        if _track < len(cue.tracks) + 1:
+            track.nextstart = cue.get_next(track).get_start_time()
+            audiolength = track.get_length()
+        elif has_audioread:
+            lasttrack = cue.tracks[-1]
+            try:
+                with audioread.audio_open(info.file[0]) as f:
+                    lasttrack.nextstart = f.duration
+            except Exception:
+                log.e('audioread failed! (%s)', filepath)
+                audiolength = 0
+            else:
+                track.nextstart = cue.get_next(track).get_start_time()
+                audiolength = track.get_length()
+        else:
+            audiolength = 0
+        return Metainfo(artist, album, title, _track, audiolength)
     if has_stagger:
         try:
             tag = stagger.read_tag(filepath)

@@ -211,7 +211,7 @@ everybody has to relogin now.''')
             cherrypy.HTTPRedirect(cherrypy.url(), 302)
             return ''
 
-    def trans(self, *args):
+    def trans(self, *args, track = None):
         if not self.isAuthorized():
             raise cherrypy.HTTPRedirect(self.getBaseUrl(), 302)
         cherrypy.session.release_lock()
@@ -229,7 +229,7 @@ everybody has to relogin now.''')
             transcoder = audiotranscode.AudioTranscode()
             mimetype = transcoder.mimeType(newformat)
             cherrypy.response.headers["Content-Type"] = mimetype
-            return transcoder.transcodeStream(fullpath, newformat)
+            return transcoder.transcodeStream(fullpath, newformat, track=track)
     trans.exposed = True
     trans._cp_config = {'response.stream': True}
 
@@ -588,6 +588,12 @@ everybody has to relogin now.''')
             return self.serve_string_as_file(pls, name+'.m3u')
 
     def api_getsonginfo(self, value):
+        # FIXME: Ugly parsing
+        if '?' in value:
+            value, track = value.split('?')
+            track = track.split('=')[-1]
+        else:
+            track = None
         basedir = cherry.config['media.basedir']
         #TODO yet another dirty hack. removing the /serve thing is a mess.
         path = unquote(value)
@@ -596,7 +602,7 @@ everybody has to relogin now.''')
         elif path.startswith('serve/'):
             path = path[6:]
         abspath = os.path.join(basedir, path)
-        return json.dumps(metainfo.getSongInfo(abspath).dict())
+        return json.dumps(metainfo.getSongInfo(abspath, track).dict())
 
     def api_getencoders(self, value):
         return json.dumps(audiotranscode.getEncoders())

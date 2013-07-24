@@ -104,7 +104,7 @@ MediaBrowser.static = {
     _renderFile : function(json){
         return Mustache.render([
             '<li class="fileinlist">',
-                '<a title="{{label}}" href="javascript:;" class="mp3file" path="{{fileurl}}">',
+                '<a title="{{label}}" href="javascript:;" class="mp3file" path="{{fileurl}}" track="{{track}}">',
                     '<span class="fullpathlabel">',
                         '{{fullpath}}',
                     '</span>',
@@ -116,6 +116,7 @@ MediaBrowser.static = {
             fileurl : json.urlpath,
             fullpath: json.path,
             label: json.label,
+            track: json.track
         });
     },
     _renderDirectory : function(json){
@@ -164,7 +165,7 @@ MediaBrowser.static = {
         
     addThisTrackToPlaylist : function(){
         "use strict"
-        playlistManager.addSong( $(this).attr("path"), $(this).attr("title") );
+        playlistManager.addSong( $(this).attr("path"), $(this).attr("title"), undefined, $(this).attr("track") );
         $(this).blur();
         return false;
     },

@@ -118,9 +118,17 @@ class CherryModel:
                 self.addMusicEntry(subpath, musicentries)
         return musicentries
 
+    def addCueSheet(self, filepath, list):
+        from cherrymusicserver.cuesheet import Cuesheet
+        cue = Cuesheet(filepath)
+        for track in range(len(cue.tracks)):
+            list.append(MusicEntry(strippath(filepath), track = track+1))
+
     def addMusicEntry(self, fullpath, list):
         if os.path.isfile(fullpath):
-            if isplayable(fullpath):
+            if iscuesheet(fullpath):
+                self.addCueSheet(fullpath, list)
+            elif isplayable(fullpath):
                 list.append(MusicEntry(strippath(fullpath)))
         else:
             list.append(MusicEntry(strippath(fullpath), dir=True))
@@ -251,6 +259,10 @@ def isplayable(filename):
     ext = os.path.splitext(filename)[1]
     return ext and ext[1:].lower() in CherryModel.supportedFormats
 
+def iscuesheet(filename):
+    ext = os.path.splitext(filename)[1]
+    return ext.lower() == '.cue'
+
 
 def strippath(path):
     if path.startswith(cherry.config['media.basedir']):
@@ -259,11 +271,12 @@ def strippath(path):
 
 
 class MusicEntry:
-    def __init__(self, path, compact=False, dir=False, repr=None):
+    def __init__(self, path, compact=False, dir=False, repr=None, track=None):
         self.path = path
         self.compact = compact
         self.dir = dir
         self.repr = repr
+        self.track = track
 
     def __repr__(self):
         return "<MusicEntry path:%s, dir:%s>" % (self.path, self.dir)
